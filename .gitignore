@@ -1,0 +1,5 @@
+/retryconv
+/bin/
+*.exe
+*.test
+*.out
