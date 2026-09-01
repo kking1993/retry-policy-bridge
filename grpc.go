@@ -51,7 +51,7 @@ func policyFromGRPC(data []byte) (Policy, error) {
 	return p, nil
 }
 
-func policyToGRPC(p Policy) ([]byte, error) {
+func policyToGRPC(p Policy, pretty bool) ([]byte, error) {
 	g := grpcRetryPolicy{
 		MaxAttempts:          p.MaxAttempts,
 		BackoffMultiplier:    p.BackoffMultiplier,
@@ -63,7 +63,7 @@ func policyToGRPC(p Policy) ([]byte, error) {
 	if p.MaxBackoff > 0 {
 		g.MaxBackoff = formatSeconds(p.MaxBackoff)
 	}
-	return json.MarshalIndent(g, "", "  ")
+	return marshal(g, pretty)
 }
 
 // formatSeconds renders a duration the way the service config examples

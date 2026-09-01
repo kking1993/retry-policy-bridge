@@ -59,6 +59,15 @@ that already pipes config through other tools:
 $ generate-envoy-config | retryconv -from envoy -to grpc | apply-to-service-config
 ```
 
+Output is indented by default. Pass `-pretty=false` for compact, single-line
+JSON, which is easier to grep or pipe into a tool that expects one JSON
+value per line:
+
+```
+$ retryconv -from grpc -to envoy -in grpc-policy.json -pretty=false
+{"retry_on":"grpc-unavailable,grpc-deadline-exceeded","num_retries":3,"retry_back_off":{"base_interval":"0.5s","max_interval":"10s"}}
+```
+
 ## What doesn't round-trip
 
 The two formats don't line up one-to-one:

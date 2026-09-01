@@ -71,7 +71,7 @@ func policyFromEnvoy(data []byte) (Policy, error) {
 	return p, nil
 }
 
-func policyToEnvoy(p Policy) ([]byte, error) {
+func policyToEnvoy(p Policy, pretty bool) ([]byte, error) {
 	numRetries := p.MaxAttempts - 1
 	if numRetries < 1 {
 		numRetries = 1
@@ -96,5 +96,5 @@ func policyToEnvoy(p Policy) ([]byte, error) {
 		}
 	}
 
-	return json.MarshalIndent(e, "", "  ")
+	return marshal(e, pretty)
 }

@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // Policy is the in-memory representation both formats convert through.
 // Neither format maps onto it perfectly, so each side drops what it
@@ -33,4 +36,14 @@ func reverseMap(m map[string]string) map[string]string {
 		r[v] = k
 	}
 	return r
+}
+
+// marshal encodes v as indented JSON by default, or as a single compact
+// line when pretty is false, so the output can drop into a pipeline that
+// expects one JSON value per line.
+func marshal(v any, pretty bool) ([]byte, error) {
+	if pretty {
+		return json.MarshalIndent(v, "", "  ")
+	}
+	return json.Marshal(v)
 }

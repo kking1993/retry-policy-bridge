@@ -15,6 +15,7 @@ func main() {
 	to := flag.String("to", "", "target format: grpc or envoy")
 	in := flag.String("in", "-", "input file, or - for stdin")
 	out := flag.String("out", "-", "output file, or - for stdout")
+	pretty := flag.Bool("pretty", true, "indent the output JSON; -pretty=false writes it compact, one line")
 	flag.Parse()
 
 	if *from == "" || *to == "" {
@@ -35,7 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	output, err := encode(*to, policy)
+	output, err := encode(*to, policy, *pretty)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "retryconv: writing %s output: %v\n", *to, err)
 		os.Exit(1)
@@ -74,12 +75,12 @@ func decode(format string, data []byte) (Policy, error) {
 	}
 }
 
-func encode(format string, p Policy) ([]byte, error) {
+func encode(format string, p Policy, pretty bool) ([]byte, error) {
 	switch format {
 	case "grpc":
-		return policyToGRPC(p)
+		return policyToGRPC(p, pretty)
 	case "envoy":
-		return policyToEnvoy(p)
+		return policyToEnvoy(p, pretty)
 	default:
 		return nil, fmt.Errorf("unknown format %q (want grpc or envoy)", format)
 	}
