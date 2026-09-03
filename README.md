@@ -51,6 +51,15 @@ The reverse direction works too:
 $ retryconv -from envoy -to grpc -in envoy-policy.json -out grpc-policy.json
 ```
 
+`-from grpc` accepts either shape: the bare `retryPolicy` object shown
+above, or a full service config with a top-level `methodConfig` array, as
+produced by whatever generates the real config. In the latter case
+retryconv uses the `retryPolicy` from the first `methodConfig` entry that
+has one and ignores the rest, since a service config can carry more than
+one method's settings and this tool only deals with retries. Output is
+always the bare `retryPolicy` object; there's no method name to wrap it
+back up with.
+
 If `-in` is omitted, or given as `-`, retryconv reads stdin. The same goes
 for `-out` and stdout. That makes it easy to drop into a build pipeline
 that already pipes config through other tools:

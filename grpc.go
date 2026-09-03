@@ -18,9 +18,38 @@ type grpcRetryPolicy struct {
 	RetryableStatusCodes []string `json:"retryableStatusCodes,omitempty"`
 }
 
+// extractGRPCRetryPolicy accepts either a bare retryPolicy object or a full
+// service config, i.e. one with a top-level methodConfig array as described
+// at https://github.com/grpc/grpc/blob/master/doc/service_config.md. Real
+// service configs are that full shape; the bare object is only the one
+// piece of it this tool cares about, so both need to work as input.
+func extractGRPCRetryPolicy(data []byte) (grpcRetryPolicy, error) {
+	var wrapper struct {
+		MethodConfig []struct {
+			RetryPolicy *grpcRetryPolicy `json:"retryPolicy"`
+		} `json:"methodConfig"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return grpcRetryPolicy{}, err
+	}
+	if wrapper.MethodConfig == nil {
+		var g grpcRetryPolicy
+		if err := json.Unmarshal(data, &g); err != nil {
+			return grpcRetryPolicy{}, err
+		}
+		return g, nil
+	}
+	for _, mc := range wrapper.MethodConfig {
+		if mc.RetryPolicy != nil {
+			return *mc.RetryPolicy, nil
+		}
+	}
+	return grpcRetryPolicy{}, fmt.Errorf("service config has no methodConfig entry with a retryPolicy")
+}
+
 func policyFromGRPC(data []byte) (Policy, error) {
-	var g grpcRetryPolicy
-	if err := json.Unmarshal(data, &g); err != nil {
+	g, err := extractGRPCRetryPolicy(data)
+	if err != nil {
 		return Policy{}, err
 	}
 	if g.MaxAttempts < 1 {
