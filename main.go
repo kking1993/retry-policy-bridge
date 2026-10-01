@@ -16,6 +16,7 @@ func main() {
 	in := flag.String("in", "-", "input file, or - for stdin")
 	out := flag.String("out", "-", "output file, or - for stdout")
 	pretty := flag.Bool("pretty", true, "indent the output JSON; -pretty=false writes it compact, one line")
+	diff := flag.Bool("diff", false, "instead of converting, round-trip the input through the other format and report what was dropped or changed")
 	flag.Parse()
 
 	if *from == "" || *to == "" {
@@ -28,6 +29,19 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "retryconv: %v\n", err)
 		os.Exit(1)
+	}
+
+	if *diff {
+		report, err := diffRoundTrip(*from, *to, data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "retryconv: %v\n", err)
+			os.Exit(1)
+		}
+		if err := writeOutput(*out, []byte(report+"\n")); err != nil {
+			fmt.Fprintf(os.Stderr, "retryconv: %v\n", err)
+			os.Exit(1)
+		}
+		return
 	}
 
 	policy, err := decode(*from, data)

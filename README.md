@@ -77,6 +77,24 @@ $ retryconv -from grpc -to envoy -in grpc-policy.json -pretty=false
 {"retry_on":"grpc-unavailable,grpc-deadline-exceeded","num_retries":3,"retry_back_off":{"base_interval":"0.5s","max_interval":"10s"}}
 ```
 
+## Checking what gets lost
+
+Pass `-diff` to skip the conversion and instead send the input to the other
+format and back, then list what didn't survive. `-from` is the format of
+the input and `-to` is the format it is sent through:
+
+```
+$ retryconv -from envoy -to grpc -diff -in envoy-policy.json
+dropped: per_try_timeout = 2s
+dropped: retry_on[5xx]
+dropped: retry_on[reset]
+```
+
+Lines start with `dropped` (in the input, missing after the round trip),
+`changed` (value differs) or `added`. Durations are compared by value, so
+`500ms` and `0.5s` count as the same. If nothing is lost it prints
+`no differences`.
+
 ## What doesn't round-trip
 
 The two formats don't line up one-to-one:
